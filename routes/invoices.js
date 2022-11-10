@@ -22,22 +22,35 @@ router.post('/', async (req, res, next) => {
         const results = await db.query(
             `INSERT INTO invoices (comp_code, amt) VALUES ($1,$2) RETURNING 
             id,comp_code, amt,paid, add_date, paid_date`,
-            [comp_code, amt ])
-        return res.status(201).json({invoices:results.rows})
+            [comp_code, amt])
+        return res.status(201).json({ invoices: results.rows })
     } catch (err) {
         return next(err)
     }
 })
 
-router.patch('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
     try {
-    const results = await db.query(
-        `UPDATE invoices SET amt=$1 WHERE id=$2 RETURNING
-         id,comp_code, amt,paid, add_date, paid_date`,
-        [req.body.amt, req.params.id])
-    return res.json({ invoice: results.rows })
-    }catch(err){
-    return next(err)
+        let today
+        const { amt, paid} = req.body
+        if (paid) {
+            today = new Date().toLocaleDateString()
+        }else{
+            today = null
+        }
+
+        const results = await db.query(
+            `UPDATE invoices SET amt=$1,paid=$2, paid_date=$3
+             WHERE id=$4 RETURNING
+             id,comp_code, amt,paid, add_date, paid_date`,
+            [amt, paid, today, req.params.id])
+
+        if (results.rows.length === 0) {
+            res.status(404).json({ message: `No invoice found with id ${req.params.id}` })
+        }
+        return res.json({ invoice: results.rows[0] })
+    } catch (err) {
+        return next(err)
     }
 })
 
