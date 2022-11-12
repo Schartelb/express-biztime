@@ -76,7 +76,7 @@ router.post('/industry', async (req, res, next) => {
         let { comp_code, ind_code } = req.body
         console.log(comp_code,ind_code)
         const results = await db.query(
-            `INSERT INTO comp_ind (comp_code, ind_code) VALUES ($1,$2)`
+            `INSERT INTO comp_ind (comp_code, ind_code) VALUES ($1,$2)`,
             [comp_code, ind_code])
         console.log(results.rows)
         return res.status(201).json({ company: results.rows })
